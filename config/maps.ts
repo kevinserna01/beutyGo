@@ -71,7 +71,7 @@ const mapStyles = [
  * Configuración de Google Maps para la aplicación
  */
 export const googleMapsConfig: GoogleMapsConfig = {
-  apiKey: '', // IMPORTANTE: Reemplazar con tu API key de Google Maps
+  apiKey: 'AIzaSyC2cxO5EJksp5Wjt8pHfLe1GqgRri858y0', // IMPORTANTE: Reemplazar con tu API key de Google Maps
   defaultCenter: {
     lat: 40.4167, // Madrid como centro por defecto
     lng: -3.7033
