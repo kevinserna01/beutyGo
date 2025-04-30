@@ -4,6 +4,16 @@
       Iniciar sesión
     </h1>
     
+    <!-- Mensaje de error general -->
+    <div v-if="errors.general" class="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+      {{ errors.general }}
+    </div>
+    
+    <!-- Mensaje de éxito -->
+    <div v-if="loginSuccess" class="mb-4 p-3 bg-green-50 border border-green-200 text-green-600 rounded-lg text-sm">
+      ¡Inicio de sesión exitoso! Redirigiendo...
+    </div>
+    
     <form @submit.prevent="handleLogin" class="space-y-4">
       <UiInput
         v-model="email"
@@ -71,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 
 // Definir el layout
@@ -89,6 +99,7 @@ const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const isLoading = ref(false)
+const loginSuccess = ref(false)
 const errors = reactive({
   email: '',
   password: '',
@@ -131,16 +142,56 @@ const handleLogin = async () => {
   
   try {
     isLoading.value = true
+    errors.general = ''
+    loginSuccess.value = false
     
     await authStore.login({
       email: email.value,
       password: password.value
     })
     
-    // Si el inicio de sesión es exitoso, redirigir a la página principal
-    router.push('/home')
+    // Mostrar mensaje de éxito
+    loginSuccess.value = true
+    
+    // Esperar un momento antes de redireccionar para que el usuario vea el mensaje de éxito
+    setTimeout(() => {
+      // Si el inicio de sesión es exitoso, redirigir a la página principal
+      router.push('/home')
+    }, 1000)
   } catch (error) {
-    errors.general = 'Credenciales inválidas'
+    loginSuccess.value = false
+    
+    // Capturar errores específicos del backend
+    if (error instanceof Error) {
+      errors.general = error.message
+    } else {
+      errors.general = 'Error al iniciar sesión. Por favor, inténtalo de nuevo.'
+    }
+    
+    // Manejar casos específicos de error
+    if (errors.general.includes('404')) {
+      errors.general = 'El usuario no existe. Revisa tus credenciales o regístrate.'
+    } else if (errors.general.includes('401') || errors.general.toLowerCase().includes('contraseña') || errors.general.toLowerCase().includes('invalid credentials')) {
+      errors.general = 'Correo electrónico o contraseña incorrectos. Por favor, verifica tus datos e inténtalo de nuevo.'
+    } else if (errors.general.toLowerCase().includes('no encontrado')) {
+      errors.general = 'El usuario no existe. Revisa tu correo electrónico o regístrate.'
+    } else if (errors.general.toLowerCase().includes('unexpected token') || errors.general.toLowerCase().includes('<!doctype') || errors.general.toLowerCase().includes('not valid json')) {
+      // SOLUCIÓN TEMPORAL: Verificar si la respuesta HTTP fue 200 OK
+      // Si el código de estado es 200, asumimos que el login fue exitoso a pesar del error de formato
+      if (error instanceof Error && (error as any).statusCode === 200) {
+        console.log('Error de formato JSON pero status 200, asumiendo login exitoso')
+        
+        // Simular éxito y redirigir al home
+        loginSuccess.value = true
+        setTimeout(() => {
+          router.push('/home')
+        }, 1000)
+        return
+      }
+      
+      errors.general = 'Error de comunicación con el servidor. El formato de respuesta no es correcto. Por favor, inténtalo más tarde o contacta al administrador.'
+      console.error('Error de formato JSON en la respuesta:', error)
+    }
   } finally {
     isLoading.value = false
   }

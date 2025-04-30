@@ -24,10 +24,20 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
       
       try {
+        console.log('Intentando iniciar sesión con:', { email: credentials.email, password: '*******' })
+        
         const api = useApi()
         
         // Realizar petición de login
         const response: AuthResponse = await api.login(credentials.email, credentials.password)
+        
+        // Verificar si la respuesta tiene la estructura esperada
+        if (!response || !response.user) {
+          console.error('Respuesta de login inválida:', response)
+          throw new Error('La respuesta del servidor no contiene la información de usuario esperada')
+        }
+        
+        console.log('Respuesta de login exitosa:', response)
         
         // Guardar datos del usuario
         this.user = response.user
@@ -46,7 +56,17 @@ export const useAuthStore = defineStore('auth', {
         
         return this.user
       } catch (error) {
-        this.error = error instanceof Error ? error.message : 'Credenciales inválidas'
+        console.error('Error en el proceso de login:', error)
+        
+        // Errores específicos para JSON invalido
+        if (error instanceof SyntaxError || 
+            (error instanceof Error && error.message.includes('JSON'))) {
+          console.error('Error de parseo JSON en la respuesta:', error)
+          this.error = 'Error al procesar la respuesta del servidor. El formato no es válido.'
+        } else {
+          this.error = error instanceof Error ? error.message : 'Credenciales inválidas'
+        }
+        
         throw error
       } finally {
         this.loading = false
