@@ -117,10 +117,11 @@ export interface LoginCredentials {
  * Datos de registro
  */
 export interface RegisterData {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
-  phoneNumber?: string;
+  phone: string;
   role: 'client' | 'professional';
 }
 

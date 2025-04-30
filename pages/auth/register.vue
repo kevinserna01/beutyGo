@@ -5,16 +5,29 @@
     </h1>
     
     <form @submit.prevent="handleRegister" class="space-y-4">
-      <UiInput
-        v-model="name"
-        label="Nombre completo"
-        type="text"
-        placeholder="Tu nombre"
-        :error="errors.name"
-        required
-        id="name"
-        autocomplete="name"
-      />
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <UiInput
+          v-model="firstName"
+          label="Nombre"
+          type="text"
+          placeholder="Tu nombre"
+          :error="errors.firstName"
+          required
+          id="firstName"
+          autocomplete="given-name"
+        />
+        
+        <UiInput
+          v-model="lastName"
+          label="Apellidos"
+          type="text"
+          placeholder="Tus apellidos"
+          :error="errors.lastName"
+          required
+          id="lastName"
+          autocomplete="family-name"
+        />
+      </div>
       
       <UiInput
         v-model="email"
@@ -33,6 +46,7 @@
         type="tel"
         placeholder="Tu número de teléfono"
         :error="errors.phone"
+        required
         id="phone"
         autocomplete="tel"
       />
@@ -147,7 +161,8 @@ useHead({
 })
 
 // Estado
-const name = ref('')
+const firstName = ref('')
+const lastName = ref('')
 const email = ref('')
 const phone = ref('')
 const password = ref('')
@@ -155,7 +170,8 @@ const passwordConfirmation = ref('')
 const role = ref<'client' | 'professional'>('client')
 const isLoading = ref(false)
 const errors = reactive({
-  name: '',
+  firstName: '',
+  lastName: '',
   email: '',
   phone: '',
   password: '',
@@ -178,8 +194,14 @@ const validateForm = (): boolean => {
   let isValid = true
   
   // Validar nombre
-  if (!name.value.trim()) {
-    errors.name = 'El nombre es obligatorio'
+  if (!firstName.value.trim()) {
+    errors.firstName = 'El nombre es obligatorio'
+    isValid = false
+  }
+  
+  // Validar apellidos
+  if (!lastName.value.trim()) {
+    errors.lastName = 'Los apellidos son obligatorios'
     isValid = false
   }
   
@@ -192,8 +214,11 @@ const validateForm = (): boolean => {
     isValid = false
   }
   
-  // Validar teléfono (opcional)
-  if (phone.value && !/^\d{9,10}$/.test(phone.value.replace(/\s+/g, ''))) {
+  // Validar teléfono (ahora obligatorio)
+  if (!phone.value) {
+    errors.phone = 'El teléfono es obligatorio'
+    isValid = false
+  } else if (!/^\d{9,10}$/.test(phone.value.replace(/\s+/g, ''))) {
     errors.phone = 'Introduce un número de teléfono válido'
     isValid = false
   }
@@ -232,14 +257,12 @@ const handleRegister = async () => {
     isLoading.value = true
     
     const userData: RegisterData = {
-      name: name.value,
+      firstName: firstName.value,
+      lastName: lastName.value,
       email: email.value,
       password: password.value,
+      phone: phone.value,
       role: role.value
-    }
-    
-    if (phone.value) {
-      userData.phoneNumber = phone.value
     }
     
     await authStore.register(userData)

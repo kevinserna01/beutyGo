@@ -48,27 +48,9 @@ export default defineNuxtConfig({
     '/auth/**': { ssr: false }
   },
 
-  // Configuración de runtimes
-  runtimeConfig: {
-    public: {
-      apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:3001/api/v1'
-    }
-  },
-  
-  // Configuración de nitro (servidor)
-  nitro: {
-    // Configuración de proxies para manejar CORS
-    devProxy: {
-      '/api/v1': {
-        target: 'http://localhost:3001',
-        changeOrigin: true
-      }
-    }
-  },
-
   // Opciones del servidor de desarrollo
   devServer: {
     port: 3000,
-    host: '0.0.0.0'
+    host: 'localhost'
   }
 })

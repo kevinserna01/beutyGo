@@ -4,12 +4,8 @@
 import type { AuthResponse, RegisterData } from '~/types'
 
 export const useApi = () => {
-  // Obtener configuración del runtime
-  const config = useRuntimeConfig()
-  
-  // URL base de la API (usando proxy en desarrollo)
-  // En desarrollo usamos el proxy configurado en nuxt.config.ts
-  const baseUrl = '/api/v1'
+  // URL base de la API
+  const baseUrl = 'http://localhost:3001/api/v1'
 
   // Obtener el token de autenticación
   const getAuthToken = (): string | null => {
