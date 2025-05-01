@@ -46,6 +46,7 @@ export const useAuthStore = defineStore('auth', {
         if (import.meta.client) {
           try {
             localStorage.setItem('user', JSON.stringify(this.user))
+            localStorage.setItem('userEmail', credentials.email)
             if (response.token) {
               localStorage.setItem('token', response.token)
             }

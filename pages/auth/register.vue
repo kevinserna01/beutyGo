@@ -4,6 +4,16 @@
       Crear cuenta
     </h1>
     
+    <!-- Mensaje de error general -->
+    <div v-if="errors.general" class="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+      {{ errors.general }}
+    </div>
+    
+    <!-- Mensaje de éxito -->
+    <div v-if="registerSuccess" class="mb-4 p-3 bg-green-50 border border-green-200 text-green-600 rounded-lg text-sm">
+      ¡Cuenta creada exitosamente! Redirigiendo al inicio de sesión...
+    </div>
+    
     <form @submit.prevent="handleRegister" class="space-y-4">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <UiInput
@@ -169,6 +179,7 @@ const password = ref('')
 const passwordConfirmation = ref('')
 const role = ref<'client' | 'professional'>('client')
 const isLoading = ref(false)
+const registerSuccess = ref(false)
 const errors = reactive({
   firstName: '',
   lastName: '',
@@ -255,6 +266,8 @@ const handleRegister = async () => {
   
   try {
     isLoading.value = true
+    errors.general = ''
+    registerSuccess.value = false
     
     const userData: RegisterData = {
       firstName: firstName.value,
@@ -267,10 +280,17 @@ const handleRegister = async () => {
     
     await authStore.register(userData)
     
-    // Si el registro es exitoso, redirigir a la página principal
-    router.push('/home')
+    // Mostrar mensaje de éxito
+    registerSuccess.value = true
+    
+    // Esperar 3 segundos antes de redirigir
+    setTimeout(() => {
+      // Redirigir a la página de inicio de sesión
+      router.push('/auth/login')
+    }, 3000)
   } catch (error) {
-    errors.general = 'Error al crear la cuenta'
+    registerSuccess.value = false
+    errors.general = error instanceof Error ? error.message : 'Error al crear la cuenta'
   } finally {
     isLoading.value = false
   }

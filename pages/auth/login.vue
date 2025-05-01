@@ -157,7 +157,7 @@ const handleLogin = async () => {
     setTimeout(() => {
       // Si el inicio de sesión es exitoso, redirigir a la página principal
       router.push('/home')
-    }, 1000)
+    }, 3000)
   } catch (error) {
     loginSuccess.value = false
     

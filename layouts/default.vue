@@ -6,27 +6,24 @@
           BeautyGo
         </NuxtLink>
         <div v-if="user" class="flex items-center gap-2">
-          <NuxtLink to="/profile" class="relative">
-            <img 
-              :src="user.photoURL || '/images/avatar-placeholder.png'" 
-              alt="Profile" 
-              class="w-8 h-8 rounded-full object-cover"
-            />
-          </NuxtLink>
-        </div>
-        <div v-else class="flex items-center gap-2">
           <NuxtLink 
-            to="/auth/login" 
-            class="px-4 py-2 text-sm text-red-500 rounded-full hover:bg-red-50 transition-colors"
+            to="/profile" 
+            class="px-4 py-2 text-sm text-gray-700 rounded-full hover:bg-gray-50 transition-colors flex items-center gap-2"
           >
-            Iniciar sesión
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+            </svg>
+            Perfil
           </NuxtLink>
-          <NuxtLink 
-            to="/auth/register" 
-            class="px-4 py-2 text-sm bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+          <button 
+            @click="handleLogout"
+            class="px-4 py-2 text-sm text-red-500 rounded-full hover:bg-red-50 transition-colors flex items-center gap-2"
           >
-            Registrarse
-          </NuxtLink>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
+            </svg>
+            Cerrar sesión
+          </button>
         </div>
       </div>
     </header>
@@ -60,20 +57,27 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import type { User } from '~/types'
+import { useAuthStore } from '~/stores/auth'
 
-// Mock user for development
-const user = ref<User | null>(null)
+const authStore = useAuthStore()
+const router = useRouter()
+
+// Obtener el usuario del store
+const user = computed(() => authStore.user)
+
+// Función para manejar el cierre de sesión
+const handleLogout = () => {
+  authStore.logout()
+  router.push('/auth/login')
+}
 
 const route = useRoute()
 
 // No mostrar header en rutas específicas
 const showHeader = computed(() => {
-  return !route.path.includes('/onboarding') && 
-         !route.path.includes('/splash') && 
-         route.path !== '/auth/login' && 
-         route.path !== '/auth/register'
+  return !route.path.includes('/auth/') && !route.path.includes('/onboarding')
 })
 
 // No mostrar footer en rutas específicas
