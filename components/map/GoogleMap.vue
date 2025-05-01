@@ -43,6 +43,7 @@ const {
 async function initializeMap() {
   if (!mapContainer.value) return
   isLoading.value = true
+  errorMessage.value = null
   
   try {
     // Cargar el script de Google Maps
@@ -53,10 +54,27 @@ async function initializeMap() {
     
     await loadGoogleMapsScript(apiKeyToUse)
     
+    // Obtener la ubicación del usuario
+    let center = props.initialCenter
+    if (!center) {
+      try {
+        console.log('Intentando obtener ubicación del usuario...')
+        center = await getUserLocation()
+        console.log('Ubicación obtenida:', center)
+      } catch (error) {
+        console.warn('No se pudo obtener la ubicación del usuario:', error)
+        // Si no se puede obtener la ubicación, mostrar un mensaje al usuario
+        errorMessage.value = error instanceof Error ? error.message : 'No se pudo obtener tu ubicación'
+        emit('error', new Error(errorMessage.value))
+        // Usar (0,0) como fallback
+        center = googleMapsConfig.defaultCenter
+      }
+    }
+    
     // Configurar opciones del mapa
     const mapOptions = {
       zoom: props.initialZoom || googleMapsConfig.defaultZoom,
-      center: props.initialCenter || googleMapsConfig.defaultCenter,
+      center: center,
       styles: googleMapsConfig.styles,
       disableDefaultUI: false,
       zoomControl: true,
@@ -87,7 +105,9 @@ async function initializeMap() {
     // Si se debe mostrar la ubicación actual
     if (props.showCurrentLocation) {
       try {
+        console.log('Intentando mostrar ubicación actual...')
         const currentLocation = await getUserLocation()
+        console.log('Ubicación actual obtenida:', currentLocation)
         
         // Añadir un marcador para la ubicación actual
         addMarkers([{
@@ -101,6 +121,8 @@ async function initializeMap() {
         panTo(currentLocation, props.initialZoom || googleMapsConfig.defaultZoom)
       } catch (locationError) {
         console.warn('No se pudo obtener la ubicación actual:', locationError)
+        errorMessage.value = locationError instanceof Error ? locationError.message : 'No se pudo obtener tu ubicación actual'
+        emit('error', new Error(errorMessage.value))
       }
     }
     

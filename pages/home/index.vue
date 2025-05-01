@@ -5,15 +5,11 @@
         Servicios cerca de ti
       </h1>
       
-      <!-- Configuración de API key -->
-      <MapApiKeyConfig @update:api-key="updateApiKey" />
-      
       <!-- Mapa -->
       <div class="mb-6">
         <MapGoogleMap 
           :markers="professionalMarkers"
           :show-current-location="true"
-          :api-key="apiKey"
           height="300px"
           @marker-click="handleMarkerClick"
           @map-loaded="handleMapLoaded"
@@ -116,26 +112,6 @@ useHead({
 const mapError = ref<string | null>(null)
 const selectedProfessionalId = ref<string | null>(null)
 const isMapLoaded = ref(false)
-const apiKey = ref<string>('')
-
-// Cargar API key del localStorage si existe
-onMounted(() => {
-  if (import.meta.client) {
-    try {
-      const storedApiKey = localStorage.getItem('googleMapsApiKey')
-      if (storedApiKey) {
-        apiKey.value = storedApiKey
-      }
-    } catch (e) {
-      console.error('Error al obtener la API key:', e)
-    }
-  }
-})
-
-// Actualizar API key
-function updateApiKey(newApiKey: string) {
-  apiKey.value = newApiKey
-}
 
 // Datos mock para la interfaz
 const categories = ref<ServiceCategory[]>([

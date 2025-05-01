@@ -45,7 +45,7 @@
       
       <UiButton 
         :variant="isLastSlide ? 'primary' : 'outline'"
-        @click="nextSlide"
+        @click="isLastSlide ? handleComplete() : nextSlide()"
       >
         {{ isLastSlide ? 'Comenzar' : 'Siguiente' }}
       </UiButton>

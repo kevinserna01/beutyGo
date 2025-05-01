@@ -190,21 +190,89 @@ export function useGoogleMaps() {
     
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
-        reject(new Error('Geolocalización no soportada por tu navegador'))
+        reject(new Error('Tu navegador no soporta geolocalización'))
         return
       }
-      
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          resolve({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          })
-        },
-        (err) => {
-          reject(new Error(`Error obteniendo la ubicación: ${err.message}`))
-        }
-      )
+
+      // Verificar si estamos en un origen seguro (HTTPS o localhost)
+      const isSecureOrigin = window.location.protocol === 'https:' || 
+                            window.location.hostname === 'localhost' || 
+                            window.location.hostname === '127.0.0.1'
+
+      if (!isSecureOrigin) {
+        reject(new Error('La geolocalización solo está disponible en conexiones seguras (HTTPS) o en localhost. Por favor, accede a la aplicación a través de HTTPS o localhost.'))
+        return
+      }
+
+      const options = {
+        enableHighAccuracy: true, // Usar GPS si está disponible
+        timeout: 15000, // Aumentar el timeout a 15 segundos
+        maximumAge: 0, // No usar caché de ubicación
+      }
+
+      let attempts = 0
+      const maxAttempts = 3
+      let bestAccuracy = Infinity
+      let bestPosition: GeolocationPosition | null = null
+
+      const getPosition = () => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            console.log(`Intento ${attempts + 1}: Precisión ${position.coords.accuracy} metros`)
+            
+            // Si la precisión es mejor que la anterior, guardar la posición
+            if (position.coords.accuracy < bestAccuracy) {
+              bestAccuracy = position.coords.accuracy
+              bestPosition = position
+            }
+
+            // Si la precisión es menor a 20 metros o hemos alcanzado el máximo de intentos
+            if (position.coords.accuracy <= 20 || attempts >= maxAttempts - 1) {
+              if (bestPosition) {
+                const location = {
+                  lat: bestPosition.coords.latitude,
+                  lng: bestPosition.coords.longitude
+                }
+                console.log(`Ubicación final obtenida con precisión de ${bestAccuracy} metros:`, location)
+                resolve(location)
+              } else {
+                reject(new Error('No se pudo obtener una ubicación precisa'))
+              }
+            } else {
+              // Intentar de nuevo con un pequeño retraso
+              attempts++
+              setTimeout(getPosition, 1000)
+            }
+          },
+          (error) => {
+            let errorMessage = 'Error al obtener la ubicación'
+            
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                errorMessage = 'Permiso de ubicación denegado. Por favor, habilita los permisos de ubicación en tu navegador.'
+                break
+              case error.POSITION_UNAVAILABLE:
+                errorMessage = 'No se pudo obtener la ubicación. Por favor, verifica que la ubicación esté habilitada en tu dispositivo.'
+                break
+              case error.TIMEOUT:
+                if (attempts < maxAttempts - 1) {
+                  attempts++
+                  setTimeout(getPosition, 1000)
+                  return
+                }
+                errorMessage = 'La solicitud de ubicación ha expirado. Por favor, intenta nuevamente.'
+                break
+            }
+            
+            console.error('Error de geolocalización:', error)
+            reject(new Error(errorMessage))
+          },
+          options
+        )
+      }
+
+      // Iniciar el primer intento
+      getPosition()
     })
   }
   

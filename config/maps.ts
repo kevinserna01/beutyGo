@@ -73,8 +73,8 @@ const mapStyles = [
 export const googleMapsConfig: GoogleMapsConfig = {
   apiKey: 'AIzaSyC2cxO5EJksp5Wjt8pHfLe1GqgRri858y0', // IMPORTANTE: Reemplazar con tu API key de Google Maps
   defaultCenter: {
-    lat: 40.4167, // Madrid como centro por defecto
-    lng: -3.7033
+    lat: 0, // No se usará por defecto, se obtendrá la ubicación del usuario
+    lng: 0
   },
   defaultZoom: 12,
   styles: mapStyles
