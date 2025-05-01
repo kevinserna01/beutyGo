@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import type { Professional, ServiceCategory, Service, MapMarker } from '~/types'
 import { mapIcons } from '~/config/maps'
 
@@ -112,6 +112,7 @@ useHead({
 const mapError = ref<string | null>(null)
 const selectedProfessionalId = ref<string | null>(null)
 const isMapLoaded = ref(false)
+const userLocation = ref<{ lat: number; lng: number } | null>(null)
 
 // Datos mock para la interfaz
 const categories = ref<ServiceCategory[]>([
@@ -234,6 +235,44 @@ const professionalMarkers = computed<MapMarker[]>(() => {
   })
 })
 
+// Función para generar ubicaciones aleatorias cerca de una posición
+function generateRandomLocation(baseLocation: { lat: number; lng: number }, radiusInKm: number = 2) {
+  // Convertir radio a grados (aproximadamente)
+  const radiusInDegrees = radiusInKm / 111.32
+  
+  // Generar ángulo aleatorio
+  const angle = Math.random() * 2 * Math.PI
+  
+  // Generar radio aleatorio
+  const randomRadius = Math.random() * radiusInDegrees
+  
+  // Calcular nueva latitud y longitud
+  const newLat = baseLocation.lat + (randomRadius * Math.cos(angle))
+  const newLng = baseLocation.lng + (randomRadius * Math.sin(angle))
+  
+  return {
+    lat: newLat,
+    lng: newLng
+  }
+}
+
+// Función para actualizar las ubicaciones de los profesionales
+function updateProfessionalLocations() {
+  if (!userLocation.value) return
+  
+  professionals.value = professionals.value.map(professional => {
+    const randomLocation = generateRandomLocation(userLocation.value!)
+    return {
+      ...professional,
+      location: {
+        ...professional.location,
+        latitude: randomLocation.lat,
+        longitude: randomLocation.lng
+      }
+    }
+  })
+}
+
 // Manejadores de eventos
 function handleMarkerClick(marker: MapMarker) {
   // Seleccionar el profesional al hacer clic en el marcador
@@ -252,7 +291,33 @@ function handleMapLoaded() {
 }
 
 function handleMapError(error: Error) {
-  mapError.value = `Error al cargar el mapa: ${error.message}`
-  console.error('Error con el mapa:', error)
+  mapError.value = error.message
+  console.error('Error en el mapa:', error)
 }
+
+// Observar cambios en la ubicación del usuario
+watch(userLocation, () => {
+  if (userLocation.value) {
+    updateProfessionalLocations()
+  }
+})
+
+// Ciclo de vida
+onMounted(() => {
+  // Obtener la ubicación del usuario
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        userLocation.value = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        }
+      },
+      (error) => {
+        console.error('Error al obtener la ubicación:', error)
+        mapError.value = 'No se pudo obtener tu ubicación. Por favor, habilita los permisos de ubicación.'
+      }
+    )
+  }
+})
 </script> 
