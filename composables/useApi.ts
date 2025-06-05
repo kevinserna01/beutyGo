@@ -7,6 +7,7 @@ export const useApi = () => {
   // URL base de la API
   const baseUrl = 'http://localhost:3001/api/v1'
 
+
   // Obtener el token de autenticación
   const getAuthToken = (): string | null => {
     if (process.client) {

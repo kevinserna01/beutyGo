@@ -160,4 +160,90 @@ export interface AuthResponse {
   user: User;
   token: string;
   message?: string;
+}
+
+/**
+ * Dirección para profesionales
+ */
+export interface Address {
+  calle: string;
+  estado: string;
+  ciudad: string;
+  codigoPostal: string;
+}
+
+/**
+ * Usuario completo para perfil (extiende User básico)
+ */
+export interface UserProfile extends User {
+  telefono?: string;
+  fotoUrl?: string;
+  direccion?: Address;
+  descripcion?: string;
+}
+
+/**
+ * Estados y ciudades para selects dependientes
+ */
+export interface Estado {
+  id: string;
+  nombre: string;
+}
+
+export interface Ciudad {
+  id: string;
+  nombre: string;
+  estadoId: string;
+}
+
+/**
+ * Datos del formulario de perfil
+ */
+export interface ProfileFormData {
+  nombre: string;
+  correo: string;
+  telefono: string;
+  fotoUrl?: string;
+  foto?: File;
+  // Campos específicos para profesionales
+  direccion?: {
+    calle: string;
+    estado: string;
+    ciudad: string;
+    codigoPostal: string;
+  };
+  descripcion?: string;
+}
+
+/**
+ * Estado de validación del formulario
+ */
+export interface ValidationState {
+  nombre: { valid: boolean; message: string };
+  correo: { valid: boolean; message: string };
+  telefono: { valid: boolean; message: string };
+  calle?: { valid: boolean; message: string };
+  estado?: { valid: boolean; message: string };
+  ciudad?: { valid: boolean; message: string };
+  codigoPostal?: { valid: boolean; message: string };
+  descripcion?: { valid: boolean; message: string };
+}
+
+/**
+ * Modo del formulario de perfil
+ */
+export type ProfileMode = 'readonly' | 'editing';
+
+/**
+ * Respuesta de la API para perfil de usuario
+ */
+export interface UserProfileResponse {
+  id: string;
+  rol: 'professional' | 'client';
+  nombre: string;
+  correo: string;
+  telefono: string;
+  fotoUrl?: string;
+  direccion?: Address;
+  descripcion?: string;
 } 
